@@ -1,0 +1,206 @@
+{
+  "name": "IVA: GitLab MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "gitlab"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "e4191412-1c89-4b7c-a09b-14ffc5fff193",
+      "name": "MCP Server Trigger",
+      "webhookId": "73522d9f-11c7-4241-b695-10e7e38e0f86"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use the `gitlab_file_fetch` tool to **fetch the contents of a specific file** from a Git-based repository (such as GitLab, gitlab, or similar). This tool is ideal for viewing source code, configuration, or documentation directly from version-controlled repositories.\n\n# Usage Instructions\n\n* You must provide a **project owner**, **project name**, and **file path**.\n* If the **project owner** is not known, default to `\"infra\"` unless context provides another value.\n* Use tools like `gitlab_file_list` or `INFRA_Git_Vector_Store` to identify or confirm the correct **file path**.\n* If any input is uncertain or ambiguous, always confirm with the user before sending the request.\n* The returned content will be the raw text of the file (e.g., shell script, YAML, Markdown, etc.).",
+        "resource": "file",
+        "operation": "get",
+        "owner": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Project_Owner', `The namespace or owner of the repository.\n\n* Default to \\`\"infra\"\\` if unspecified.\n* Examples: \\`\"infra\"\\`, \\`\"devops-tools\"\\`, \\`\"netops\"\\``, 'string') }}",
+        "repository": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Project_Name', `The exact name of the Git repository.\n\n* Must be confirmed or retrieved via vector search.\n* Examples: \\`\"gitops-deployer\"\\`, \\`\"node-config-manager\"\\``, 'string') }}",
+        "filePath": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_Path', `The relative path of the file within the repository.\n\n* Use \\`git_repo_list_files\\` to locate it if unknown.\n* Examples: \\`\"Dockerfile\"\\`, \\`\"src/deploy/init.sh\"\\`, \\`\"manifests/policy.yaml\"\\``, 'string') }}",
+        "asBinaryProperty": false,
+        "additionalParameters": {
+          "reference": "main"
+        }
+      },
+      "type": "n8n-nodes-base.gitlabTool",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        112
+      ],
+      "id": "5mycompany4dbfa-0c51-4fac-b409-870e1f9ea31e",
+      "name": "gitlab_file_fetch",
+      "credentials": {
+        "gitlabApi": {
+          "id": "g0hHgynEAVk0HYEN",
+          "name": "GitLab account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use the `gitlab_file_list` tool to **retrieve a list of all file paths** within a Git-based repository (such as GitLab, gitlab, or similar platforms). This tool is helpful for auditing codebases, navigating repositories, or identifying key files by project.\n\n# Usage Instructions\n\n* Requires the repository's **owner/namespace** and **project name**.\n* If the owner is not explicitly provided:\n\n  * Attempt to infer from context (e.g., using vector search).\n  * Otherwise, **default to `\"infra\"`**.\n* Validate both inputs using the `INFRA_Git_Vector_Store` if necessary.\n* Once all required inputs are confirmed, use this tool to list the full relative paths of all files in the repository.\n* Results are structured as a flat list of file paths within the repo, not their contents.\n* Do not assume access to private or restricted repositories unless confirmed.",
+        "resource": "file",
+        "operation": "list",
+        "owner": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Project_Owner', `The namespace or owner of the Git project.\n\n* If unknown, default to \\`\"infra\"\\`\n* Examples: \\`\"infra\"\\`, \\`\"devops-tools\"\\`, \\`\"infra-team\"\\``, 'string') }}",
+        "repository": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Project_Name', `The name of the repository (case-sensitive, exact match required).\n\n* Must be validated against known Git repositories or confirmed by the user.\n* Examples: \\`\"pipeline-runner\"\\`, \\`\"gitops-deployer\"\\``, 'string') }}",
+        "returnAll": true,
+        "filePath": "=",
+        "additionalParameters": {
+          "recursive": true
+        }
+      },
+      "type": "n8n-nodes-base.gitlabTool",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        112
+      ],
+      "id": "69ae487d-9f0e-4a7e-9d28-0a29c84fdf8b",
+      "name": "gitlab_file_list",
+      "credentials": {
+        "gitlabApi": {
+          "id": "g0hHgynEAVk0HYEN",
+          "name": "GitLab account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use the `git_file_create` tool to **create a new file with specified content inside a Git-based repository**, such as GitLab or gitlab.\n\n# Usage Instructions\n\n* Ensure all required fields are populated: project owner, project name, file path, content, author name, and author email.\n* If the repository was just created, reuse its project owner and name directly.\n* Use defaults when author details are unavailable:\n\n  * Author Name: `INFRA Automation`\n  * Author Email: `_infraautomation@mycompany.com`\n* The file path must represent the intended location and filename (e.g., `scripts/deploy.sh`).\n* Use user input or derived context to resolve unclear parameters.\n* Always confirm or validate all fields before creating the file.\n* After successful creation, you may notify the user with the file path and repository name.",
+        "resource": "file",
+        "owner": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Project_Owner', `Namespace or group owning the repository.\n\n* If unknown, default to \\`infra\\`\n* Example: \\`\"devops-tools\"\\``, 'string') }}",
+        "repository": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Project_Name', `The exact name of the Git repository where the file will be created.\n\n* Example: \\`\"infra-automation-core\"\\``, 'string') }}",
+        "filePath": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_Path', `Path and filename where the content will be written.\n\n* Must be relative to the repository root\n* Example: \\`\"scripts/deploy.sh\"\\`, \\`\"Dockerfile\"\\``, 'string') }}",
+        "fileContent": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('File_Content', `Full text content of the file.\n\n* Must be the complete body of the file\n* Can include script code, configuration, etc.`, 'string') }}",
+        "commitMessage": "Created via IVA",
+        "branch": "main",
+        "additionalParameters": {
+          "author": {
+            "name": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Name', `Full name of the user creating the file.\n\n* Default: \\`INFRA Automation\\` if unknown\n* Example: \\`\"Jane Doe\"\\``, 'string') }}",
+            "email": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Email', `Email address of the user creating the file.\n\n* Default: \\`_infraautomation@mycompany.com\\` if unknown\n* Must be a valid email format\n* Example: \\`\"jane.doe@mycompany.com\"\\``, 'string') }}"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gitlabTool",
+      "typeVersion": 1,
+      "position": [
+        224,
+        112
+      ],
+      "id": "448440ce-0ac2-45c4-9f3c-d4d2ba30aec8",
+      "name": "gitlab_file_create",
+      "credentials": {
+        "gitlabApi": {
+          "id": "g0hHgynEAVk0HYEN",
+          "name": "GitLab account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `git_repo_create` tool to **create a new Git repository** on platforms like GitLab, gitlab, or similar systems supported by INFRA.\n\n# Usage Instructions\n\n* You must provide a valid, **unique** repository name.\n* Use vector search (`INFRA_Git_Vector_Store`) to ensure the name does **not** already exist.\n* The name must follow naming conventions:\n\n  * Lowercase only\n  * Hyphens (`-`) allowed\n  * No spaces, uppercase, or special characters\n* You may generate a name based on the user's context or request, but **always confirm** with the user before proceeding.\n* After creation, **share the Git URL** with the user to confirm success.",
+        "method": "POST",
+        "url": "https://gitlab.mycompany.com/api/v4/projects",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "gitlabApi",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `The name of the new Git repository.\n\n* Must be unique (not already in use)\n* Must be lowercase\n* Can contain hyphens (\\`-\\`)\n* Cannot contain spaces, uppercase letters, or other special characters\n* Must be confirmed by the user before use\n* Examples: \\`\"infra-monitoring\"\\`, \\`\"infra-bot-api\"\\`, \\`\"mycompanylab-deploy-tools\"\\``, 'string') }}"
+            },
+            {
+              "name": "namespace_id",
+              "value": "24306"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -48,
+        112
+      ],
+      "id": "50b681f2-682e-4fea-9122-48ffeb6b3ebe",
+      "name": "gitlab_repo_create",
+      "credentials": {
+        "gitlabApi": {
+          "id": "g0hHgynEAVk0HYEN",
+          "name": "GitLab account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "gitlab_file_fetch": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gitlab_file_list": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gitlab_file_create": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gitlab_repo_create": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1dcff7ce-6037-4a51-8a09-01035bf4cc63",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "0i4oJyFXT1Vck9f3",
+  "tags": []
+}

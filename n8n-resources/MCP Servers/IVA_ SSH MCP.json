@@ -1,0 +1,85 @@
+{
+  "name": "IVA: SSH MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ssh-exec"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "a839e779-52f0-467c-a8e5-d179e44b2668",
+      "name": "MCP Server Trigger",
+      "webhookId": "2e5a1fc6-a17e-4ba1-b545-7b744fe77528"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use this `ssh_execute_command` tool to remotely **run shell commands** over SSH on any server accessible within the INFRA-managed infrastructure. This tool is commonly used for retrieving logs, validating config files, or triggering admin operations or running commands without direct manual access.\n\n# Usage Instructions\n\n* This tool should only be used when:\n\n  * The user requests live system information, remote file reads, or operational diagnostics that require command-line access.\n  * A secure and authenticated connection to a remote Linux server is available.\n\n* You must provide all the following SSH connection parameters:\n\n  * `host`\n  * `port`\n  * `username`\n  * `password`\n  * `commands` (one or more shell commands to execute)\n\n# Response Format:\n\nThe tool returns a JSON object containing the result for each executed command. Each entry in the `results` list includes:\n\n* `command`: The exact command that was run.\n* `stdout`: The standard output from the shell (cleaned, as a string).\n* `stderr`: Any error messages or prompts (e.g., password prompts, permission errors, etc.).\n\n## Example Output:\n\n```json\n{\n  \"results\": [\n    {\n      \"command\": \"sudo cat /etc/hosts\",\n      \"stdout\": \"127.0.0.1 localhost\\n127.0.1.1 infra-ai-node-1\\n\\n# The following lines are desirable for IPv6 capable hosts\\n::1     ip6-localhost ip6-loopback\\nfe00::0 ip6-localnet\\nff00::0 ip6-mcastprefix\\nff02::1 ip6-allnodes\\nff02::2 ip6-allrouters\\n\",\n      \"stderr\": \"[sudo] password for infra: \"\n    }\n  ]\n}\n```\n\n### Agent Guidance on Handling Output:\n\n* Always display the output from `stdout` in a readable, **formatted Markdown block**, like:\n\n  ```\n  127.0.0.1 localhost\n  127.0.1.1 infra-ai-node-1\n\n  # The following lines are desirable for IPv6 capable hosts\n  ::1     ip6-localhost ip6-loopback\n  fe00::0 ip6-localnet\n  ff00::0 ip6-mcastprefix\n  ff02::1 ip6-allnodes\n  ff02::2 ip6-allrouters\n  ```\n\n* Only mention `stderr` if:\n\n  * There’s a clear error.\n  * A prompt or permission issue needs user input.\n* Always take user confirmation showing the Host and Command only to the user",
+        "method": "POST",
+        "url": "http://infra-ssh-exec:8000/ssh/exec",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "host",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `*The IP address or DNS hostname of the target server.*\n\n* Either extract from the conversation context or ask the user to provide it.\n* **Example**:\n\n  \\`\\`\\`\n  10.197.12.198\n  \\`\\`\\``, 'string') }}"
+            },
+            {
+              "name": "port",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `*The port number on which the SSH service is running.*\n\n* Default is \\`22\\`. Change only if a non-standard port is clearly mentioned or inferred from context.\n* **Example**:\n\n  \\`\\`\\`\n  22\n  \\`\\`\\``, 'string') }}"
+            },
+            {
+              "name": "username",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters2_Value', `*The SSH login username used to authenticate the session.*\n\n* Default is \\`root\\`, but prefer using one from context if available. Otherwise, ask the user.\n* **Example**:\n\n  \\`\\`\\`\n  infra\n  \\`\\`\\``, 'string') }}"
+            },
+            {
+              "name": "password",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters3_Value', `*The SSH login password for the provided user.*\n\n* Default is \\`P@ssw0rd\\`. Use from context or ask explicitly if unclear.\n* **Example**:\n\n  \\`\\`\\`\n  I@mthebo\\\\\\\\$s\n  \\`\\`\\``, 'string') }}"
+            },
+            {
+              "name": "command",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters4_Value', `*A single shell command to execute remotely, escaped properly to fit into JSON.*\n\n* The command can include multiple shell operations using \\`&&\\`, pipes, redirection, etc.\n* You **must escape** double quotes and other special characters.\n* **Example**:\n\n\\`\\`\\`json\nsudo cat /etc/hosts && echo \\\\\\\\\\\\\"Done\\\\\\\\\\\\\" && df -h\n\\`\\`\\``, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        112
+      ],
+      "id": "a420b288-17c9-4a54-a6bb-cd455c7233f6",
+      "name": "ssh_execute_command"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "ssh_execute_command": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "45a58dd9-7941-4e0f-afcb-d00b10a90468",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "SM4OP7aSnkCrq9jy",
+  "tags": []
+}

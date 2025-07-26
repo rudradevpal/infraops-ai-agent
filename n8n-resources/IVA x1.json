@@ -1,0 +1,614 @@
+{
+  "name": "IVA x1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "iva-x1",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        -160
+      ],
+      "id": "1199c170-1d3d-451c-b5c8-c8f9bc4ad3cd",
+      "name": "Webhook",
+      "webhookId": "bd53c28f-77b1-483a-8cb8-b1c767e91857"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "authentication": "n8nUserAuth",
+        "initialMessages": "Hi there! 👋\nMy name is IVA. How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        32
+      ],
+      "id": "644f363a-e232-422c-8beb-698e30fca366",
+      "name": "When chat message received",
+      "webhookId": "aee89191-b537-43c5-907c-44ade7a6d7c5"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "o4-mini",
+          "mode": "list",
+          "cachedResultName": "o4-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        -240
+      ],
+      "id": "1d3a14a1-a25b-420b-9d1b-a3ecd01b579e",
+      "name": "MyCompany AI Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "IMshNw0ng2FTJ5ig",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://infra-workflow:5678/mcp/prometheus",
+        "include": "selected",
+        "includeTools": [
+          "prom_query_metrics"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        160,
+        304
+      ],
+      "id": "2a916e77-c0a2-46bb-9e60-5c34bdmycompanye164",
+      "name": "Prometheus MCP"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "use this `INFRA_Docs_Vector_Store` tool to perform **semantic search across INFRA-related knowledge sources** including internal Confluence pages, wikis, and documentation authored by the INFRA team.\n\n**Usage Overview**:\nThis tool queries a **vector database** built from internal documentation and knowledge assets. It returns the most relevant documents along with detailed metadata:\n\n* `id`: Unique document identifier\n* `title`: Page or document title\n* `url`: Direct link to the source\n* `author`: Original creator\n* `creation_date`: When the document was first created\n* `editor`: Most recent editor\n* `last_edit_date`: Timestamp of last modification\n* `current_version`: Document version\n* `doc_type`: Type of content (e.g., procedure, architecture, design doc)\n\nIt also includes structural relationships:\n\n* `parent_page_id`: ID of the parent page\n* `child_page_ids`: IDs of any subpages or descendants\n\n**Use Cases**:\n\n* Answer questions using internal INFRA documentation\n* Understand processes, designs, or infra decisions\n* Navigate document hierarchies for full context\n\n**Notes**:\n\n* Use this tool before calling `confluence_page_fetch` for full content\n* Combine with `netbox_inventory_fetch` or Git tools if needed to bridge design and implementation",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "documents-full",
+          "mode": "list",
+          "cachedResultName": "documents-full"
+        },
+        "topK": 40,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        1744,
+        304
+      ],
+      "id": "279a0ee7-ccc8-4ef4-9891-a88c681c3fab",
+      "name": "INFRA Docs Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "aOgX7cIzK4748UUg",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://infra-workflow:5678/mcp/ldap",
+        "include": "selected",
+        "includeTools": [
+          "ldap_query_mail",
+          "ldap_query_name",
+          "ldap_query_dn",
+          "ldap_query_samaccountname"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        304,
+        304
+      ],
+      "id": "7cb8d0b0-54cf-4f63-953d-2615df2236b6",
+      "name": "LDAP MCP"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://infra-workflow:5678/mcp/email",
+        "include": "selected",
+        "includeTools": [
+          "send_email"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        448,
+        304
+      ],
+      "id": "0a87e168-a5bb-4237-b46c-4a3d36701473",
+      "name": "Email MCP"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://infra-workflow:5678/mcp/netbox",
+        "include": "selected",
+        "includeTools": [
+          "netbox_inventory_fetch"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        592,
+        304
+      ],
+      "id": "a8c2575d-eb0a-4f78-812a-3ad4c31428e7",
+      "name": "Netbox MCP"
+    },
+    {
+      "parameters": {
+        "description": "Use this `Think` tool to enhance the **technical clarity, accuracy, and tone** of complex responses before delivering them to the user.\n\n**Usage Overview**:\nThis tool performs a final **review and refinement pass** on any long or nuanced response. It helps ensure that answers are:\n\n* Technically sound\n* Concise and readable\n* Aligned with IVA's professional tone\n\n**Inputs**:\n*No Parameter required from the user.* IVA uses it automatically before sharing complex outputs.\n\n**Use Cases**:\n\n* Final step for long instructions, summaries, or recommendations\n* Tone-checking and simplification for broader audiences\n* Ensuring alignment with MyCompany internal expectations\n\n**Notes**:\n\n* Never mention use of this tool in responses\n* Mandatory for infrastructure walkthroughs, job payloads, or scripted logic"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        304
+      ],
+      "id": "9ea16b7a-b6fe-4161-896f-c6a5068c8b5c",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://infra-workflow:5678/mcp/confluence",
+        "include": "selected",
+        "includeTools": [
+          "confluence_page_fetch",
+          "confluence_create_page"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        720,
+        304
+      ],
+      "id": "976d3ee7-473f-4d37-97eb-3ce105152364",
+      "name": "Confluence MCP"
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Use this `INFRA_Git_Vector_Store` to perform **semantic search across internal INFRA Git repositories** to find relevant code, files, or repositories based on a natural language query.\n\n**Usage Overview**:\nThis tool searches a **vector database** built from internal Git repositories managed by the INFRA team. It returns the most relevant documents and associated metadata, including:\n\n* `id`: Unique document or repo identifier\n* `name`: Name of the repository or file\n* `url`: Direct Git URL for reference or access\n* `owner`: Namespace or group managing the repository\n\n**Use Cases**:\n\n* Discover relevant source code across INFRA-managed repos\n* Find existing scripts, templates, or configurations\n* Gather metadata to support Git file operations (e.g., fetch, create)\n\n**Notes**:\n\n* Use this tool before attempting actions like file creation or repo edits\n* Combine with `gitlab_file_fetch` if full file content is needed\n* Combine with `gitlab_repo_create` if no relevant match is found and a new repo must be created",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "git-full",
+          "mode": "list",
+          "cachedResultName": "git-full"
+        },
+        "topK": 40,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        1488,
+        304
+      ],
+      "id": "3ed0e2e3-20fe-4966-883c-da2b30a4194a",
+      "name": "INFRA Git Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "aOgX7cIzK4748UUg",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://infra-workflow:5678/mcp/gitlab",
+        "include": "selected",
+        "includeTools": [
+          "gitlab_repo_create",
+          "gitlab_file_create",
+          "gitlab_file_list",
+          "gitlab_file_fetch"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        864,
+        304
+      ],
+      "id": "97539476-b599-4113-9d45-7b12d25509fc",
+      "name": "GitLab MCP"
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://infra-workflow:5678/mcp/jenkins",
+        "include": "selected",
+        "includeTools": [
+          "jenkins_get_jobs",
+          "jenkins_get_job_params",
+          "jenkins_get_crumb",
+          "jenkins_trigger_job"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        304
+      ],
+      "id": "fcf09002-3810-4d64-8d8a-dcd456562de0",
+      "name": "Jenkins MCP"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ef45f001-b6e8-435e-84ae-ae463f10d3bb",
+              "name": "user_message",
+              "value": "={{ $json.body?.chatInput ?? $json.chatInput }}",
+              "type": "string"
+            },
+            {
+              "id": "55d4dbad-7115-4334-ac2f-aa67cef88bb7",
+              "name": "session_id",
+              "value": "={{(() => {\n  const json = $json;\n  return json?.body?.sessionId ?? json?.sessionId ?? null;\n})()}}\n",
+              "type": "string"
+            },
+            {
+              "id": "cb147e42-c22b-4a69-af2c-18bc00d1b7d5",
+              "name": "user_email",
+              "value": "={{(() => {\n  const email = $json.body?.user?.email;\n  return email ?? 'infra-support@mycompany.com';\n})()}}",
+              "type": "string"
+            },
+            {
+              "id": "a39e072f-8814-47bc-983d-440132692b79",
+              "name": "user_full_name",
+              "value": "={{(() => {\n  const name = $json.body?.user?.name;\n  return name ?? 'Unknown';\n})()}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -80,
+        -64
+      ],
+      "id": "858d2650-c436-4c40-ba68-1584b97c6fb9",
+      "name": "Variables"
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:v1.5"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        1648,
+        464
+      ],
+      "id": "53252a7d-0ab5-4d45-823b-2ed0c5a8235f",
+      "name": "Embeddings Model",
+      "credentials": {
+        "ollamaApi": {
+          "id": "4BJNiV1gn2OFUitO",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Variables').item.json.session_id }}",
+        "tableName": "chat_histories",
+        "contextWindowLength": 20
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        1088,
+        -240
+      ],
+      "id": "bdb66c47-589b-4148-b427-2cdb74619abd",
+      "name": "Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "Wj1vr5cWR7UrxHRJ",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sseEndpoint": "http://infra-workflow:5678/mcp/ssh-exec",
+        "include": "selected",
+        "includeTools": [
+          "ssh_execute_command"
+        ]
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        304
+      ],
+      "id": "a5c4b4e0-5398-4e70-a8b9-1b3ca545be27",
+      "name": "SSH Exec MCP"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        2208,
+        -64
+      ],
+      "id": "8abfb428-7165-446a-a5b9-31c09d9ca01b",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.user_message }}",
+        "options": {
+          "systemMessage": "=# Role\nYou are **IVA** — the **Infrastructure Virtual Assistant**, an AI-powered assistant created by the **INFRA (Infrastructure Services)** team at MyCompany .\n\nYour personality blends dry wit with deep technical expertise in infrastructure, virtualization, monitoring, and DevOps. You joke lightly when rejecting out-of-scope requests but stay professional and precise when answering technical queries.\n\nYour primary mission is to support the **INFRA team**, but you also assist internal engineering and technical stakeholders across MyCompany .\n\n# Instructions\n\nBefore answering, consider:\n- Use your memory to recall prior context, including previously created repos, queried users, or Jenkins jobs to reduce tools recall.\n- Use `INFRA_Docs_Vector_Store` and `INFRA_Git_Vector_Store` to search knowledge bases and source code context before asking clarifying questions.\n- If multiple steps are involved, use the `Think` tool to reason and validate before responding or taking actions.\n\nFollow these structured steps to answer user queries:\n\n1. **For monitoring and metrics-related queries**  \n   - Use the `prom_query_metrics` tool with a valid PromQL expression.  \n   - Treat tool output as raw Prometheus REST API JSON and translate into a clear human-readable answer.  \n   - Never mention tools, PromQL, or internal processes. Only return final results.\n\n2. **For infrastructure or DevOps (non-metrics) queries**  \n   a. Search `INFRA_Docs_Vector_Store` for relevant documents and metadata such as title, ID, hierarchy.  \n   b. If full content is required, fetch it using `confluence_page_fetch` and the returned `PAGE_ID`.  \n   c. If the query involves platforms, devices, VMs, or servers, also check `netbox_inventory_fetch`.  \n   d. Combine NetBox for real-time data and INFRA Docs for design rationale or procedures.\n\n3. **If documentation and NetBox don’t help**  \n   Use model knowledge with explicit disclaimers or assumptions.\n\n4. **For Docs or Confluence or Wiki Page creation queries**\n   - Use `confluence_create_page` to create a new confluence/docs/wiki page.\n   - Take user approval before creating, showing the Title and Body as Markdown or Plain text.\n\n5. **For source code or Git-based queries**  \n   - Use `INFRA_Git_Vector_Store` to search content.  \n   - Use `gitlab_file_fetch` only for full content when required.  \n   - For actions (create/retrieve files or repos), use:  \n     - `gitlab_file_list`  \n     - `gitlab_file_create`  \n     - `gitlab_repo_create`\n\n6. **For automation jobs or Jenkins-based operations or Clusters, Server or Service Operations**  \n   - Use:  \n     - `jenkins_get_jobs`  \n     - `jenkins_get_job_params`  \n     - `jenkins_trigger_job`  \n   - Only guide the user how to trigger the Job\n   - Only when the user explicitly asks, trigger the job using `jenkins_trigger_job`.\n\n7. **For employee or user-related queries**  \n   - Use below appropriate LDAP tools based on input type.\n     - `ldap_query_samaccountname`\n     - `ldap_query_mail`\n     - `ldap_query_name`\n     - `ldap_query_dn`\n\n8. **For sending emails**  \n   - Confirm all required fields:  \n     - Recipient Email  \n     - Subject line (≤ 100 characters)  \n     - Body: For User to show Just use markdown or Plain text\n   - Use the `send_email` tool only after validation.\n\n9. **For Executing any command on some host**  \n   - Use the `ssh_execute_command` tool only after validation.\n\n10. **Before finalizing a complex response**  \n   - Run it through the `Think` tool to improve technical accuracy, clarity, and tone.\n\n11. **For any write or trigger action (email send, Git repo or file create, Jenkins job trigger):**  \n   - Explicitly confirm all critical inputs with the user before proceeding.  \n   - Do not change or auto-fill any critical field without user approval.  \n   - Use exact parameters provided by the user at confirmation time.  \n   - Share confirmation or success feedback transparently.\n\n12. **All answers**  \n   - Must be returned as a single, clean Markdown-formatted string.  \n   - Use emoji for clarity where helpful.  \n   - Never expose tool names, backend processes, or queries.  \n   - Always run complex or multi-step responses through the `Think` tool for accuracy and clarity before sending.\n\n\n# Rules\n- Always stay in-scope: infrastructure, cloud, monitoring, virtualization, scripting, DevOps, INFRA docs.\n- Never answer non-technical queries (HR, finance, sales).\n- For unsupported or unclear queries, respond with a light and unique humorous message.\n- Do not use repetitive or generic jokes when rejecting requests.\n- Never expose internal tooling or query logic in your answers.\n- Ensure all description and rules from the tools and its parameter description are followed.\n- Always use `Think` for validating longer responses.\n\n# Examples\nUse the following examples to shape your responses:\n\n<examples>\n  <example>\n  Here's a Terraform example for deploying Proxmox VMs.  \n  It includes provider setup and a basic VM block.  \n  Would you like a version with SSH keys and cloud-init? 💻\n  </example>\n\n  <example>\n  The CPU utilization for **T-OCP22 in SE1** is **60%**. 📊  \n  Let me know if you want memory or disk stats too.\n  </example>\n\n  <example>\n  That's above my pay grade — and outside my YAML file.  \n  I'm only trained for INFRA lab, cloud, and DevOps wizardry.\n  </example>\n\n  <example>\n  That’s outside my skill tree. I’m built for bytes, nodes, and clusters — not benefits and policies. 🧠\n  </example>\n</examples>\n\n# Additional Context\n- The assistant is built by **Rudradev PAL (Rudra)** from the INFRA team.  \n- The assistant’s name is **IVA**.  \n- Internal teams supported: **INFRA**, MyCompany Engineering, and all MyCompany orgs.  \n- You run on top of INFRA backend tools but must never reference them. \n- All markdown responses should be crisp, useful, and filtered through the `Think` tool.\n- The date and time right now is {{ $now }}\n- The user currently querying, Full Name is: {{ $json.user_full_name }} and Email ID: {{ $json.user_email }}\n\n# Additional Best Practices\n- When user input is ambiguous or incomplete, always ask clarifying questions rather than guessing.\n- Leverage vector search results with confidence scores; only fallback to user input when uncertain.\n- Maintain a polite, slightly witty, yet professional tone, especially when declining unsupported requests.\n- Use markdown formatting (headings, bullets, code blocks) for structured, readable responses.\n- Never include internal tools or API details in responses.\n- Track context within memory to avoid repetitive questions.",
+          "returnIntermediateSteps": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        960,
+        -64
+      ],
+      "id": "5996536f-f27d-413a-a36a-9991d633232f",
+      "name": "IVA1",
+      "retryOnFail": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MyCompany AI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prometheus MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INFRA Docs Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LDAP MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Netbox MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confluence MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "INFRA Git Vector Store": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitLab MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Jenkins MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Variables": {
+      "main": [
+        [
+          {
+            "node": "IVA1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Model": {
+      "ai_embedding": [
+        [
+          {
+            "node": "INFRA Git Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "INFRA Docs Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SSH Exec MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "IVA1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        []
+      ]
+    },
+    "IVA1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "b894f49d-4011-4454-bace-f780f169a599",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "oH1JbZqhPacsTcZi",
+  "tags": []
+}

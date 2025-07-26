@@ -1,0 +1,82 @@
+{
+  "name": "IVA: Prometheus MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "prometheus"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "d9cc0d09-9bc3-4cfa-8625-78131dfd1fb7",
+      "name": "MCP Server Trigger",
+      "webhookId": "5a4840e9-2154-4fe5-afb3-f3ebed096ef6"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `prom_query_metrics` tool to retrieve real-time system metrics from the INFRA Monitoring system using a valid **PromQL** (Prometheus Query Language) query. This tool returns raw JSON results directly from the Prometheus API and is intended **only** for metric data retrieval — not query construction or interpretation.\n\n# Usage Instructions\n* Always construct queries using the correct `targetName`, `targetSite`, and `targetType` label sets as described below.\n* While searching with pertial targetName, consider it may or may not have text before or after the partial text so use like `*<search_text>*`\n* Do **not** rely on model knowledge to guess metrics — use only what is defined in the system and query precisely.\n* This tool does not generate PromQL queries; your prompts must contain a valid PromQL expression.\n* Do not expose internal tool usage, query details, or backend responses to the user.\n* Convert raw Prometheus responses into concise, readable, well-formatted technical summaries (Markdown and emoji allowed).\n* If the targetName provided cannot be found:\n  * Perform fuzzy matching across all `targetType` buckets considering value might have some text before and after or case issue.\n  * If partial matches exist, prompt the user to choose one.\n  * If no match is found, reply with a neutral fallback like(not exactly same):\n    > *\"I checked across all known clusters but didn’t find anything matching that name. Might be a typo — or a machine that’s off the grid.\"*\n* For **basic status checks**, always try to use the `uptime` target type, regardless of the actual platform.\n\n# Label Rules\n* Use label sets as part of PromQL queries where needed:\n  * `targetName`: Cluster, server, or service name (e.g., `\"T-OCP22\"`, `\"atom-k8s-prd1\"`).\n  * `targetType`: Required when using certain metrics. Valid values:\n    * `uptime`: For availability status and cert checks (e.g., `monitor_status`, `monitor_cert_days_remaining`). Supports special targetName formatting with `[kubernetes]`, `[openshift]`, or `[robin-io]` suffixes.\n    * `kubernetes`, `openshift`, `proxmox`, `robin`, `titan-k8s`, `node`: For platform-specific metrics. this does not supports special targetName formatting with `[kubernetes]`, `[openshift]`, or `[robin-io]` suffixes.\n  * `targetSite`: Physical location of system. Use one of the following codes:\n\n    | Code | Location                    |\n    | ---- | --------------------------- |\n    | BOS  | Boston Main Lab             |\n    | HYD  | Hyderabad Main Lab          |\n    | SE1  | Seattle SE1 (INAP colo)     |\n    | SE3  | Seattle SE3 (Equinix colo)  |\n    | SEA  | Seattle MyCompany Tower L25 Lab    |\n    | SJC  | San Jose Main / SHAPE Lab   |\n    | SV2  | San Jose SV2 (Equinix colo) |\n    | TLV  | Tel Aviv Lab                |\n    | SPK  | Spokane Lab                 |\n\n* `uptime` targetType only supports:\n  * `monitor_status`\n  * `monitor_cert_days_remaining`\n  * These **require** the `targetName` to include the platform in brackets for Kubernetes: [kubernetes], Openshift: [openshift], Robin.io: [robin-io], e.g., `\"se1-k8s-prod01[kubernetes]\"`.\n* **Do not** include `[kubernetes]`, `[openshift]`, etc., in `targetName` for any targetType except `uptime`.\n\n# Key Rules Recap\n* Don’t show PromQL expressions or describe tool actions.\n* Output must be a clean, single string — technically precise, readable, and to-the-point.\n* Always format results for clarity and professionalism, using Markdown and emoji when helpful.",
+        "method": "POST",
+        "url": "https://mimir.infra-monitoring.mycompany.com/prometheus/api/v1/query",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Scope-OrgID",
+              "value": "infra"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `A valid Prometheus query expression (PromQL).\n**Rules**:\n\n* Include appropriate labels only if required (\\`targetName\\`, \\`targetType\\`, \\`targetSite\\`).\n* Use official Prometheus metrics or INFRA custom metrics.\n* The tool will not validate syntax; malformed queries may result in no output.\n  Example:\n  \\`\\`\\`\n  monitor_status{targetName=\"se1-k8s-prod01[kubernetes]\", targetSite=\"SE1\", targetType=\"uptime\"}\n  \\`\\`\\``, 'string') }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        },
+        "optimizeResponse": true
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        80
+      ],
+      "id": "49973b6a-cf80-42b1-8842-4618a437b68c",
+      "name": "prom_query_metrics"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "prom_query_metrics": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cb9a6b1d-0b73-42a2-92c8-fc2aa5aaaebd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "wyJE8vRHikqhO89p",
+  "tags": []
+}

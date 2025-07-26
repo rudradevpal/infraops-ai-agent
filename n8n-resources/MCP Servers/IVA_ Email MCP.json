@@ -1,0 +1,73 @@
+{
+  "name": "IVA: Email MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "email"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "5c82ee9d-62d9-4bd5-9dc4-45e7efbaaa96",
+      "name": "MCP Server Trigger",
+      "webhookId": "e6cab40a-0efa-466d-bf88-711c13be322c"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use the `send_email` tool to send internal emails within the **`mycompany.com`** domain. This tool allows IVA to compose and deliver messages by generating the **subject line**, **HTML body**, and selecting the correct **recipient** based on user input.\n\n# Usage Instructions\n\n* Before sending an email:\n\n  * **Explicitly confirm** all three fields with the user:\n    * `To Email`\n    * `Subject`\n    * `Body`: For user to show just use plain text\n* Do **not** proceed with sending unless the user has approved all required fields.\n* If a **name** is provided instead of an email address, use `ldap_query_name` or other LDAP tools to look up a valid `@mycompany.com` address.\n* Only send to verified recipients within the **`@mycompany.com` domain**.\n* All email content must be embedded inside the following required HTML template:\n   ```html\n   <!DOCTYPE html>\n   <html lang=\"en\">\n   <head>\n     <meta charset=\"UTF-8\">\n     <title>IVA</title>\n     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n     <style>\n       @media (prefers-color-scheme: dark) {\n         body, table, td, p {\n           color: #ffffff !important;\n           background-color: #1a1a1a !important;\n         }\n       }\n     </style>\n   </head>\n   <body style=\"margin:0; padding:0; font-family:Arial, sans-serif; background-color:#ffffff; color:#333333; -webkit-font-smoothing:antialiased;\">\n\n     <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"background-color:transparent; padding:20px 0;\">\n       <tr>\n         <td align=\"center\">\n           <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"max-width:800px; width:100%; background-color:transparent; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.05);\">\n             <tr>\n               <td style=\"padding:20px 30px; font-size:15px; line-height:1.6; color:inherit;\">\n                 <p style=\"margin:0;\">[BODY]</p>\n               </td>\n             </tr>\n             <tr>\n               <td style=\"padding:15px 30px; font-size:12px; text-align:center; color:#999999;\">\n                 <a style=\"background: linear-gradient(90deg, #5db9ff, #4b1fff, #f252a6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:600; font-family:sans-serif; text-decoration:none; transition: filter 0.3s ease;\" onmouseover=\"this.style.filter='brightness(1.2)'\" onmouseout=\"this.style.filter='brightness(1)'\" href=\"https://chat.infra-ai.mycompany.com/\" target=\"_blank\">IVA</a>&nbsp;|&nbsp;\n                 <a style=\"background: linear-gradient(90deg, #5db9ff, #4b1fff, #f252a6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:600; font-family:sans-serif; text-decoration:none; transition: filter 0.3s ease;\" onmouseover=\"this.style.filter='brightness(1.2)'\" onmouseout=\"this.style.filter='brightness(1)'\" href=\"mailto:someone@example.com\">EMAIL US</a>&nbsp;|&nbsp;\n               </td>\n             </tr>\n           </table>\n         </td>\n       </tr>\n     </table>\n   </body>\n   </html>\n   ```\n   Replace [BODY] with the actual text body content.\n* Always append this footer at the end:\n\n  > *Sent through [IVA](https://chat.infra-ai.mycompany.com/) – INFRA AI Agent*\n* Use this tool only for **automated internal communication** within MyCompany. It is **not** meant for external or marketing emails.\n\n# Rules\n\n* Never assume or autofill the recipient address — always ask for confirmation.\n* Never fabricate or guess the `From Email`. If not available, use the fallback:\n\n  ```\n  _infraautomation@mycompany.com\n  ```\n* Subject lines must be relevant and concise, under **100 characters**.\n* Always confirm the full message content (HTML body) before dispatch.\n* Do not expose tool names or internal sending mechanisms.\n* Inform the user upon success or failure of the email operation.",
+        "fromEmail": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('From_Email', `The sender's email address.\n**Rules**:\n\n* Use the current chat user's email if known.\n* If unavailable, default to \\`_infraautomation@mycompany.com\\`.\n* Never fabricate or guess this address.\n  Example:\n\n\\`\\`\\`\n_infraautomation@mycompany.com\n\\`\\`\\``, 'string') }}",
+        "toEmail": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('To_Email', `The recipient’s MyCompany corporate email address.\n**Rules**:\n\n* Must be a valid email within the \\`@mycompany.com\\` domain.\n* If user provides a name, use LDAP tools to resolve.\n* Confirm address explicitly with the user before sending.\n  Example:\n\n\\`\\`\\`\njane.doe@mycompany.com\n\\`\\`\\``, 'string') }}",
+        "subject": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subject', `The subject line of the email.\n**Rules**:\n\n* Must be meaningful and under 100 characters(No Emoji).\n* Confirm with the user prior to sending.\n  Example:\n\n\\`\\`\\`\nAccess Granted: Lab Server Credentials\n\\`\\`\\``, 'string') }}",
+        "html": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('HTML', `The full HTML-formatted body of the email.\n**Rules**:\n\n* Must be valid HTML.\n* Confirm with the user.\n* All email content must be embedded inside the following required HTML template:\n   \\`\\`\\`html\n   <!DOCTYPE html>\n   <html lang=\"en\">\n   <head>\n     <meta charset=\"UTF-8\">\n     <title>IVA</title>\n     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n     <style>\n       @media (prefers-color-scheme: dark) {\n         body, table, td, p {\n           color: #ffffff !important;\n           background-color: #1a1a1a !important;\n         }\n       }\n     </style>\n   </head>\n   <body style=\"margin:0; padding:0; font-family:Arial, sans-serif; background-color:#ffffff; color:#333333; -webkit-font-smoothing:antialiased;\">\n\n     <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"background-color:transparent; padding:20px 0;\">\n       <tr>\n         <td align=\"center\">\n           <table role=\"presentation\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"100%\" style=\"max-width:800px; width:100%; background-color:transparent; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.05);\">\n             <tr>\n               <td style=\"padding:20px 30px; font-size:15px; line-height:1.6; color:inherit;\">\n                 <p style=\"margin:0;\">[BODY]</p>\n               </td>\n             </tr>\n             <tr>\n               <td style=\"padding:15px 30px; font-size:12px; text-align:center; color:#999999;\">\n                 <a style=\"background: linear-gradient(90deg, #5db9ff, #4b1fff, #f252a6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:600; font-family:sans-serif; text-decoration:none; transition: filter 0.3s ease;\" onmouseover=\"this.style.filter='brightness(1.2)'\" onmouseout=\"this.style.filter='brightness(1)'\" href=\"https://chat.infra-ai.mycompany.com/\" target=\"_blank\">IVA</a>&nbsp;|&nbsp;\n                 <a style=\"background: linear-gradient(90deg, #5db9ff, #4b1fff, #f252a6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight:600; font-family:sans-serif; text-decoration:none; transition: filter 0.3s ease;\" onmouseover=\"this.style.filter='brightness(1.2)'\" onmouseout=\"this.style.filter='brightness(1)'\" href=\"mailto:someone@example.com\">EMAIL US</a>&nbsp;\n               </td>\n             </tr>\n           </table>\n         </td>\n       </tr>\n     </table>\n   </body>\n   </html>\n   \\`\\`\\`\n   Replace [BODY] with the actual text body content.\n* Always append this footer at the end:\n\n  > *Sent through [IVA](https://chat.infra-ai.mycompany.com/) – INFRA AI Agent*\n  > Example:\n  \\`\\`\\`html\n    <p>Your lab access has been configured successfully.</p>\n    <p><i>Sent through <a href=\"https://chat.infra-ai.mycompany.com/\">IVA</a> – INFRA AI Agent</i></p>\n  \\`\\`\\``, 'string') }}",
+        "options": {
+          "appendAttribution": false,
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.emailSendTool",
+      "typeVersion": 2.1,
+      "position": [
+        -144,
+        112
+      ],
+      "id": "014edde1-8ecc-4631-83e8-893camycompanydcb2d",
+      "name": "send_email",
+      "webhookId": "4236cb92-5872-41d2-aef6-6b25fcae00c6",
+      "credentials": {
+        "smtp": {
+          "id": "gDSherAdHhtBaZ1W",
+          "name": "SMTP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "send_email": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "ed88bb97-f2d4-4589-8abb-bca0a8a04702",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "RHvLjpZDpSMt0oib",
+  "tags": []
+}

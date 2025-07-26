@@ -1,0 +1,190 @@
+{
+  "name": "IVA: Jenkins MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "jenkins"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "a2a50ad6-496c-49e7-855c-e30cd1075d60",
+      "name": "MCP Server Trigger",
+      "webhookId": "37001865-c92e-4cdc-97c6-e23365126b71"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `jenkins_get_job_params` tool to **retrieve detailed metadata about a specific Jenkins job**, in **INFRA automation** or accessible within the broader Jenkins ecosystem.\n\n# Usage Instructions\n\n* This tool requires a valid Jenkins job metadata endpoint.\n* The job URL must point to the `api/json` endpoint of a specific job.\n* Use the `jenkins_get_jobs` tool to discover job paths before invoking this tool.\n* The returned metadata includes:\n\n  * Job configuration\n  * Triggers and schedules\n  * Current build status\n  * SCM details\n  * Parameters and more",
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', `The full Jenkins API URL for the job metadata endpoint.\n\n* Must follow the format:\n  \\`https://infra-automation.mycompany.com/job/<JOB_PATH>/api/json\\`\n* Replace \\`<JOB_PATH>\\` with the appropriate Jenkins job path.\n* Example:\n  \\`https://infra-automation.mycompany.com/job/l1-operations/job/deploy-infra-services/api/json\\`\n  \\`https://infra-automation.mycompany.com/job/deploy-infra-services/api/json\\`\n  **Rule:**\n* Do not call this tool unless the full job path has been confirmed or retrieved.`, 'string') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Basic xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -128,
+        80
+      ],
+      "id": "ccedfc5a-8422-4898-845d-6b09ed60c2a6",
+      "name": "jenkins_get_job_params"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `jenkins_get_jobs` tool to **retrieve a complete list of Jenkins jobs** available in the Jenkins ecosystem(**INFRA automation**.)\n\n# Usage Instructions\n\n* No input is required.\n* This tool fetches the list of all configured Jenkins jobs accessible via the Jenkins instance.\n* Useful for:\n\n  * Discovering automation capabilities\n  * Validating job names before triggering or inspecting a Jenkins job\n  * Building menus or suggestions for available workflows\n* If multiple similer job found for same task (may be different path) confirm from user which one to use",
+        "url": "https://infra-automation.mycompany.com/api/json?tree=jobs[fullName,name,url,jobs[fullName,name,url,jobs[fullName,name,url]]]",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Basic xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -368,
+        80
+      ],
+      "id": "c1968016-ae3a-4dee-9e11-fb44498c5bdb",
+      "name": "jenkins_get_jobs"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `jenkins_get_crumb` tool to **retrieve the CSRF protection token (\"crumb\")** required for performing authenticated POST or PUT operations via the Jenkins API on the INFRA automation Jenkins instance.\n\n# Usage Instructions\n\n* No input parameters are required.\n* This tool internally contacts the Jenkins crumb endpoint to obtain the CSRF token.\n* Always call this tool **before performing any write operation** on Jenkins (e.g., triggering jobs, creating builds).\n* The `crumb` returned must be added to the request headers as:\n\n  * `Jenkins-Crumb: <crumb>`",
+        "url": "https://infra-automation.mycompany.com/crumbIssuer/api/json",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "authorization",
+              "value": "Basic xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -624,
+        80
+      ],
+      "id": "c15d25fb-e15e-47ae-9adf-58eb9d45f8fc",
+      "name": "jenkins_get_crumb"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `jenkins_trigger_job` tool to **trigger a Jenkins job** with specified parameters using the `buildWithParameters` endpoint on the INFRA Automation Jenkins server.\n\n# Usage Instructions\n\n* Requires a valid Jenkins **crumb** obtained from `jenkins_get_crumb`.\n* Use only after confirming the **job name**, **parameter keys**, and **values** with the user.\n* Always pass parameters in **URL-encoded** form.\n* Use `jenkins_get_jobs` to discover jobs, and `jenkins_get_job_params` to identify valid parameter names.\n\n## Important Guidance:\n\n1. **Always fetch the crumb first** using `jenkins_get_crumb`.\n2. Confirm all job-related details with the user:\n   * `url`\n   * `body` (parameter keys and values)\n3. Do not change any field after user approval.\n4. Once triggered, share the **Jenkins job link** so the user can monitor progress.\n5. Ensure strict key naming as per the job’s defined parameters.",
+        "method": "POST",
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', `Jenkins job trigger endpoint. Must be constructed as:\n\n\\`\\`\\`\nhttps://infra-automation.mycompany.com/job/<JOB_NAME>/buildWithParameters\n\\`\\`\\`\n\nReplace \\`<JOB_NAME>\\` with the correct job path.\nConfirm job name with tooling or user input.`, 'string') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Jenkins-Crumb",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `CSRF protection token. Fetch via the \\`jenkins_get_crumb\\` tool.\nInclude it in headers under the correct field name (\\`crumbRequestField\\`).`, 'string') }}"
+            },
+            {
+              "name": "authorization",
+              "value": "Basic xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "specifyBody": "string",
+        "body": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Body', `A URL-encoded string of job parameters.\nExample format:\n\n\\`\\`\\`\nENV=prod&REGION=us-west&FORCE=true\n\\`\\`\\`\n\n* Parameter keys must match those from \\`jenkins_get_job_params\\`.\n* Values should be inferred from user context or explicitly confirmed.\n* Do **not** alter any values once approved by the user.`, 'string') }}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        128,
+        80
+      ],
+      "id": "bea18b1a-ccfb-43f6-8137-eced30ed4684",
+      "name": "jenkins_trigger_job"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "jenkins_get_job_params": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "jenkins_get_jobs": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "jenkins_get_crumb": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "jenkins_trigger_job": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a5103d3a-1897-4c13-8cb1-ba13f18d94d9",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "ssP8QwFBEdlp53F2",
+  "tags": []
+}

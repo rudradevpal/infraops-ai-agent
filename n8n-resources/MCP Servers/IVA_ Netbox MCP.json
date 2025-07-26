@@ -1,0 +1,70 @@
+{
+  "name": "IVA: Netbox MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "netbox"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "87e73866-6000-4b3b-9a79-9be5adb99c1c",
+      "name": "MCP Server Trigger",
+      "webhookId": "83dd8183-9348-4a99-ab4c-f1d1f78cff79"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `netbox_inventory_fetch` tool to retrieve infrastructure resource details from the **INFRA NetBox** inventory system. This tool allows querying structured records for various components such as **sites**, **racks**, **devices**, **platforms**, **clusters**, and **virtual machines**.\n\n# Usage Instructions\n\n* Construct the correct URL based on the target resource and lookup method.\n* You can query the following resources:\n\n  * Sites\n  * Racks\n  * Devices\n  * Platforms\n  * Virtual Machines\n  * Clusters\n  * Cluster Types\n\n* To retrieve **all records** of a resource type, use the base endpoint:\n\n  ```\n  https://elis.netbox.hyd.pd.mycompany.com/api/<category>/<resource_type>/\n  ```\n\n  Example:\n\n  ```\n  https://elis.netbox.hyd.pd.mycompany.com/api/dcim/devices/\n  ```\n\n* To retrieve a specific record by ID, append the ID:\n\n  ```\n  https://elis.netbox.hyd.pd.mycompany.com/api/<category>/<resource_type>/<id>/\n  ```\n\n* To look up a resource by name, use a query parameter:\n\n  ```\n  https://elis.netbox.hyd.pd.mycompany.com/api/<category>/<resource_type>/?name=<name>\n  ```\n\n* Categories:\n\n  * `dcim`: For `sites`, `racks`, `devices`, `platforms`\n  * `virtualization`: For `clusters`, `cluster-types`, `virtual-machines`\n\n* If a query returns no results:\n\n  * Search across all resource types for possible matches.\n  * Suggest similarly named entries when relevant.\n\n* Do **not** include the `status` field (if marked \"active\") in any user-facing output.\n\n* Always format and return a clear, accurate summary to the user.",
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', `The **fully constructed NetBox API URL** used to fetch the desired resource.\n\n* Must follow the structure rules as described in the tool description.\n* IVA is responsible for building this URL based on user intent.\n* Can include query parameters or ID only when required.\n* Always ensure correct resource path and API version.\n\nExample – fetch all devices:\n\n\\`\\`\\`\nhttps://elis.netbox.hyd.pd.mycompany.com/api/dcim/devices/\n\\`\\`\\`\n\nExample – fetch VM by name:\n\n\\`\\`\\`\nhttps://elis.netbox.hyd.pd.mycompany.com/api/virtualization/virtual-machines/?name=se1-lab-vm01\n\\`\\`\\``, 'string') }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Token xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -144,
+        80
+      ],
+      "id": "c4615d6f-860d-4cea-b8e5-19328bbd10bb",
+      "name": "netbox_inventory_fetch"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "netbox_inventory_fetch": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "577d25dc-e8ff-4926-bd43-615ba238c9ae",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "XGVcHK1E6Kb4ayAV",
+  "tags": []
+}

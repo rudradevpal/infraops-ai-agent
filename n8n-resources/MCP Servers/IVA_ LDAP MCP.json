@@ -1,0 +1,225 @@
+{
+  "name": "IVA: LDAP MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ldap"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "37abbbfe-fd15-4c98-a7ff-96c41f047f3a",
+      "name": "MCP Server Trigger",
+      "webhookId": "8c6e40ba-a4f6-48e6-9db0-508083e5127b"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use the `ldap_query_samaccountname` tool to query the **ActiveDirectory LDAP directory** for user information using a provided `sAMAccountName` (commonly referred to as the **ActiveDirectory ID** or **username**). This tool returns all user attributes associated with the matching LDAP entry or entries.\n\n# Usage Instructions\n\n* Use this tool when a user needs details about an employee, such as name, email, job title, or reporting manager.\n* Accept both exact and partial usernames:\n\n  * For exact lookup, use the precise `sAMAccountName`.\n  * For partial or fuzzy matching, use wildcard syntax (e.g., `*alex*`).\n  * Note: Fuzzy queries may return multiple results.\n* Always filter and present results cleanly and clearly — don’t show raw LDAP responses.\n* This tool is useful for:\n\n  * Resolving full names from usernames\n  * Looking up contact or reporting structure\n  * Fetching title or email based on login ID\n\n# Rules\n\n* Do not return raw LDAP or DN strings to the user unless specifically asked.\n* Present relevant fields in a clean, structured format using Markdown.\n* If multiple users match, show a user-friendly list with key identifiers like name, title, and email.\n* Do not expose internal tool names or query syntax.\n* Always clarify if the result is ambiguous (e.g., \"Found multiple users — please confirm which one you meant\").",
+        "baseDN": "DC=activedirectory,DC=MyCompanyNet,DC=com",
+        "searchFor": "(objectclass=organizationalPerson)",
+        "attribute": "sAMAccountName",
+        "searchText": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Text', `The ActiveDirectory ID (username) of the employee to look up.\n**Rules**:\n\n* Accepts both exact and wildcard (fuzzy) inputs.\n* Use \\`*<text>*\\` syntax for fuzzy searches.\n* Avoid using full names or emails here — use the dedicated LDAP tools for those.\n  Example (exact):\n\n\\`\\`\\`\nrpal\n\\`\\`\\`\n\nExample (fuzzy):\n\n\\`\\`\\`\n*alex*\n\\`\\`\\``, 'string') }}",
+        "returnAll": true,
+        "options": {
+          "attributes": [
+            "displayName",
+            "cn",
+            "sn",
+            "givenName",
+            "mail",
+            "title",
+            "manager",
+            "sAMAccountName"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.ldapTool",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        80
+      ],
+      "id": "a08f7b59-2259-4474-830c-88c2e33e1529",
+      "name": "ldap_query_samaccountname",
+      "credentials": {
+        "ldap": {
+          "id": "xzufRzVGftjiYlCj",
+          "name": "LDAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use the `ldap_query_dn` tool to retrieve user identity details from the **ActiveDirectory LDAP directory** using a full **Distinguished Name (`dn`)**, which represents the exact LDAP path to a user object. This tool provides full attribute resolution for identity lookups when the DN is known (typically obtained from prior LDAP queries).\n\n# Usage Instructions\n\n* Use this tool when the exact `dn` (Distinguished Name) of a user is available.\n* It is best used as a **follow-up tool** after retrieving a list of potential matches from a previous LDAP search (e.g., manager DNs).\n* The returned output includes complete user metadata, such as name, email, title, and ActiveDirectory ID.\n* Designed for scenarios where internal systems return DNs, and you need human-readable identity data.\n\n# Rules\n\n* Do not expose the raw DN or LDAP object path unless requested.\n* Do not refer to this tool directly or mention LDAP infrastructure.\n* Always format responses in Markdown for readability.\n* If the provided DN is invalid or does not match any user, reply gracefully:\n\n  > *\"I couldn’t find any user for that DN. It might be outdated or incorrect.\"*",
+        "baseDN": "DC=activedirectory,DC=MyCompanyNet,DC=com",
+        "searchFor": "(objectclass=organizationalPerson)",
+        "attribute": "dn",
+        "searchText": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Text', `The full **Distinguished Name** of the user to retrieve.\n**Rules**:\n\n* Must be a valid LDAP DN string.\n* Usually retrieved from other LDAP lookups (e.g., \\`manager\\` field).\n* Do not attempt to construct or modify the DN manually.\n  Example:\n\n\\`\\`\\`\nCN=Jane Doe,OU=Users,DC=corp,DC=mycompany,DC=com\n\\`\\`\\``, 'string') }}",
+        "returnAll": true,
+        "options": {
+          "attributes": [
+            "displayName",
+            "cn",
+            "sn",
+            "givenName",
+            "mail",
+            "title",
+            "manager",
+            "sAMAccountName"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.ldapTool",
+      "typeVersion": 1,
+      "position": [
+        160,
+        80
+      ],
+      "id": "0c60e319-c4b7-4f85-9832-4b4ed166508b",
+      "name": "ldap_query_dn",
+      "credentials": {
+        "ldap": {
+          "id": "xzufRzVGftjiYlCj",
+          "name": "LDAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use the `ldap_query_name` tool to query the **ActiveDirectory LDAP directory** using a user’s **full name (`displayName`)**. This tool returns all matching user records along with their relevant identity attributes. It supports **fuzzy searching**, making it suitable for cases where you only know part of the user's name.\n\n# Usage Instructions\n\n* Use this tool when you know the user's **full name** or **part of their name**.\n* Supports wildcard-based fuzzy search using `*<text>*` syntax.\n\n  * Example: `*doe*` could return `Jane Doe`, `John Doeson`, etc.\n* Ideal for resolving full profiles when only name-based context is available.\n* The tool returns structured identity data, including name, email, job title, and ActiveDirectory ID.\n\n# Rules\n\n* Format user responses clearly and concisely using Markdown.\n* If multiple matches are returned:\n\n  * List them with key details like name, title, email, and ActiveDirectory ID.\n  * Ask the user to confirm the intended individual.\n* Do not show raw LDAP paths like `dn` unless requested.\n* Do not expose tool mechanics or internal operations.\n* If no match is found, respond with a friendly fallback like:\n\n  > *\"I couldn’t find anyone with that name. Could it be spelled differently?\"*",
+        "baseDN": "DC=activedirectory,DC=MyCompanyNet,DC=com",
+        "searchFor": "(objectclass=organizationalPerson)",
+        "attribute": "displayName",
+        "searchText": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Text', `The full or partial name of the user to look up.\n**Rules**:\n\n* Supports wildcard-based partial matches (e.g., \\`*alex*\\`).\n* Case-insensitive and accepts both full names and fragments.\n* Avoid using email or ID here — use \\`ldap_query_mail\\` or \\`ldap_query_samaccountname\\` for that.\n  Example (exact):\n\n\\`\\`\\`\nJane Doe\n\\`\\`\\`\n\nExample (fuzzy):\n\n\\`\\`\\`\n*doe*\n\\`\\`\\``, 'string') }}",
+        "returnAll": true,
+        "options": {
+          "attributes": [
+            "displayName",
+            "cn",
+            "sn",
+            "givenName",
+            "mail",
+            "title",
+            "manager",
+            "sAMAccountName"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.ldapTool",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        112
+      ],
+      "id": "7c5cd61c-cf4a-4401-ac78-3cd427290b92",
+      "name": "ldap_query_name",
+      "credentials": {
+        "ldap": {
+          "id": "xzufRzVGftjiYlCj",
+          "name": "LDAP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use the `ldap_query_mail` tool to search for **user identity details** in the **ActiveDirectory LDAP directory** using a user's **email address**. The tool returns associated attributes for all matching user records and is ideal for email-based identity lookups and user resolution tasks within ActiveDirectory-connected systems.\n\n# Usage Instructions\n\n* Use this tool when the only known detail is the user's email address.\n* Returns a structured user profile including name, title, manager, and ActiveDirectory ID.\n* Supports lookup by full email only — **partial or fuzzy matching is not supported**.\n* Use when you need to:\n\n  * Resolve a user's name or title from their email.\n  * Validate user existence from email context (e.g., from Git commits or requests).\n  * Retrieve the corresponding `sAMAccountName` from a known email.\n\n# Rules\n\n* Always present results in a clean, readable format (Markdown), showing relevant fields like full name, title, and ActiveDirectory ID.\n* Do not expose raw LDAP strings (e.g., `dn`) unless explicitly requested.\n* If no match is found, let the user know clearly (e.g., *\"I couldn’t find any user with that email address.\"*).\n* Do not use or expose the tool name or its internal process to the user.\n* This tool does not support wildcard or fuzzy search. Input must be the exact email.",
+        "baseDN": "DC=activedirectory,DC=MyCompanyNet,DC=com",
+        "searchFor": "(objectclass=organizationalPerson)",
+        "attribute": "mail",
+        "searchText": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Text', `The email address of the user to be looked up.\n**Rules**:\n\n* Must be a full and valid email address (no partial matching supported).\n* Should be in standard email format.\n* If the email is missing or invalid, ask the user to provide it.\n  Example:\n\n\\`\\`\\`\njane.doe@example.com\n\\`\\`\\``, 'string') }}",
+        "returnAll": true,
+        "options": {
+          "attributes": [
+            "displayName",
+            "cn",
+            "sn",
+            "givenName",
+            "mail",
+            "title",
+            "manager",
+            "sAMAccountName"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.ldapTool",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        112
+      ],
+      "id": "b8130a65-69b9-4e40-9fac-49730fd167b0",
+      "name": "ldap_query_mail",
+      "credentials": {
+        "ldap": {
+          "id": "xzufRzVGftjiYlCj",
+          "name": "LDAP account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "ldap_query_samaccountname": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ldap_query_dn": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ldap_query_name": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ldap_query_mail": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f14a06e3-7677-4cdd-965c-00eec76944dd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "akJblVZ9IDKi2Hvd",
+  "tags": []
+}

@@ -1,0 +1,118 @@
+{
+  "name": "IVA: Confluence MCP",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "confluence"
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        -144
+      ],
+      "id": "0df3bd9b-bcd5-42ce-992f-49a91a44daaf",
+      "name": "MCP Server Trigger",
+      "webhookId": "94416f9d-fb8b-49a0-8808-6f71048413de"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `confluence_page_fetch` tool to retrieve the **full HTML body** of a specific Confluence page from the INFRA Documentation system. This tool is intended for detailed, page-level document access when the user requests full content or when deeper context is needed.\n\n# Usage Instructions\n\n* This tool should only be used when:\n\n  * A user **explicitly asks** for the full content of a document, **or**\n  * You need to extract technical steps or configuration snippets not available in the search summary.\n\n* You must provide a valid URL(https://docs.mycompany.com/rest/api/content/<PAGE_ID>) `PAGE_ID` to fetch the document.\n\n  * The `PAGE_ID` is typically sourced from the `INFRA_Docs_Vector_Store` search tool.\n  * It may also be given directly by the user.\n\n* The response is returned in **raw HTML format**, which must be interpreted or converted before sharing with the user.\n* Only use this tool when higher-fidelity document data is essential. Prefer summaries from `INFRA_Docs_Vector_Store` when possible to reduce noise.\n* Never expose internal URLs, raw HTML, or tool mechanics to the user.\n\n# Rules\n* Do not attempt to guess the `PAGE_ID`. Always retrieve it from a valid prior result or user instruction.\n* Do not show the user the raw HTML output.\n* Do not refer to the tool by name in your response.\n* Summarize the key content cleanly and clearly using Markdown, formatted for readability and technical accuracy.\n* Avoid redundant fetches if the same content has already been retrieved during the current conversation.",
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', `* \\`URL\\`:\n  The unique URL with PAGE_ID identifier of the Confluence page to retrieve.\n  **Rules**:\n  * Must be a valid Confluence page ID, obtained from a previous \\`INFRA_Docs_Vector_Store\\` result or explicitly provided by the user.\n  * Use exactly as returned — do not alter, shorten, or infer the ID and use the URL: https://docs.mycompany.com/rest/api/content/<PAGE_ID>\n    Example:\n    \\`\\`\\`\n    https://docs.mycompany.com/rest/api/content/341239423\n    \\`\\`\\``, 'string') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "expand",
+              "value": "body.storage"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -368,
+        48
+      ],
+      "id": "b0807459-cb07-4d4e-b059-41dd09088919",
+      "name": "confluence_page_fetch",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "psdIC3PgyiidWw41",
+          "name": "Confluence Credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Use the `confluence_create_page` tool to **create a new Confluence or Docs page** within a specified space on the INFRA-managed Confluence Space.\n# Usage Instructions:\n\n1. Use this tool to **automatically create Confluence pages** from structured input like automation results, release notes, or documentation generation.\n2. Ensure `body` is defined as per its description before triggering.\n3. This tool will:\n\n   * Return the resulting **Confluence page URL** for access or reference.\n\n# Important Guidance:\n\n* Do **not** include raw Markdown or plain text — only valid HTML within `body.storage.value`.\n* The `representation` must be exactly `\"storage\"` — other types (e.g., `wiki`, `editor`) are not supported here.\n* Use consistent heading levels (`<h1>`, `<h2>`, etc.) and semantic HTML for long-term maintainability.\n* Output the final page link upon success.\n* Always take user approval before creating the page showing the title and body content as Markdown or Plaintext. Only create after approval\n* Never ask or confirm Space Key to user",
+        "method": "POST",
+        "url": "https://docs.mycompany.com/rest/api/content",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('JSON', `This tool requires a **single JSON body payload** in the following structure:\n\n\\`\\`\\`json\n{\n  \"type\": \"page\",\n  \"title\": \"<ti>\",\n  \"space\": {\n    \"key\": \"CH\"\n  },\n  \"ancestors\": [\n    {\n      \"id\": \"<ancestors.id>\"\n    }\n  ],\n  \"body\": {\n    \"storage\": {\n      \"value\": \"<html_body>\",\n      \"representation\": \"storage\"\n    }\n  }\n}\n\\`\\`\\`\n\n## Breakdown of each field:\n\n* \\`type\\`:\n  Always set to \\`\"page\"\\`.\n\n* \\`title\\`:\n  The **title of the new page** (e.g., \\`\"Weekly INFRA Lab Report – Week 29\"\\`).\n  This becomes the visible page heading in Confluence. Generate from the context or ask user.\n\n* \\`space.key\\`:\n  Confluence space key.\n  For INFRA documentation, this is always \\`\"CH\"\\`.\n\n* \\`ancestors.id\\`:\n  The numeric ID of the **parent page**. This links the new page into the correct section of the doc tree. Default is For INFRA documentation, this is always \\`\"997012575\"\\`.\n\n* \\`body.storage\\`:\n  Page content in Confluence storage format:\n\n  \\`\\`\\`json\n  {\n    \"storage\": {\n      \"value\": \"<html_body>\",\n      \"representation\": \"storage\"\n    }\n  }\n  \\`\\`\\`\n\n  * \\`value\\`: Must be valid HTML defining the page content.\n    Always **append** the following attribution footer at the end:\n\n    \\`\\`\\`html\n    <p><i>Created through <a href=\"https://chat.infra-ai.mycompany.com/\">IVA</a> – INFRA AI Agent</i>.</p>\n    \\`\\`\\`\n\n    **Example value:**\n\n    \\`\\`\\`html\n    <h2>Access Provisioning Complete</h2>\n    <p>Your lab VM has been set up and credentials shared.</p>\n    <p><i>Created through <a href=\"https://chat.infra-ai.mycompany.com/\">IVA</a> – INFRA AI Agent</i>.</p>\n    \\`\\`\\`\n\n  * \\`representation\\`:\n    Must always be \\`\"storage\"\\` for proper rendering in Confluence.`, 'json') }}",
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        48
+      ],
+      "id": "5678f96a-c14c-46d9-aa86-e269ae87d31f",
+      "name": "confluence_create_page",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "psdIC3PgyiidWw41",
+          "name": "Confluence Credentials"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "confluence_page_fetch": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "confluence_create_page": {
+      "ai_tool": [
+        [
+          {
+            "node": "MCP Server Trigger",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d123c672-3092-479a-accf-cec2f057923a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "rP7BK8o8rTHC6KZi",
+  "tags": []
+}

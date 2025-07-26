@@ -1,0 +1,1056 @@
+{
+  "name": "IVA Vectorization",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -6688,
+        -176
+      ],
+      "id": "1b09b859-34d4-45d9-b88a-5cc42daf750d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bd77d293-9e2d-4138-b6e9-0aea883mycompany1cc",
+              "name": "wiki_base_url",
+              "value": "https://docs.mycompany.com",
+              "type": "string"
+            },
+            {
+              "id": "ba076e01-94df-42d1-8316-db343a4d4b4d",
+              "name": "wiki_space_key",
+              "value": "CH",
+              "type": "string"
+            },
+            {
+              "id": "ed9372da-5b2b-4994-863f-84b25a146e62",
+              "name": "wiki_username",
+              "value": "_infraautomation",
+              "type": "string"
+            },
+            {
+              "id": "e2e46ec9-0726-4105-b775-eca7b0f493d2",
+              "name": "wiki_password",
+              "value": "FlR24*PKUT1lm*iAs?/!",
+              "type": "string"
+            },
+            {
+              "id": "c80de017-433c-4b4e-91de-bdd34c1b43ff",
+              "name": "wiki_limit",
+              "value": "=200",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -6464,
+        -176
+      ],
+      "id": "1ba678ba-a783-428d-8074-b74b9fcc714c",
+      "name": "Edit Fields4"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.wiki_base_url }}/rest/api/content",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "spaceKey",
+              "value": "={{ $json.wiki_space_key }}"
+            },
+            {
+              "name": "type",
+              "value": "page"
+            },
+            {
+              "name": "limit",
+              "value": "={{ $json.wiki_limit }}"
+            }
+          ]
+        },
+        "options": {
+          "pagination": {
+            "pagination": {
+              "parameters": {
+                "parameters": [
+                  {
+                    "name": "start",
+                    "value": "={{(() => {\n  const match = $response.body._links.next.match(/start=(\\d+)/);\n  return match ? parseInt(match[1], 10) : 0;\n})()}}"
+                  }
+                ]
+              },
+              "paginationCompleteWhen": "other",
+              "completeExpression": "={{ !$response.body._links.next }}",
+              "requestInterval": 2000
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -6240,
+        -176
+      ],
+      "id": "41df8d87-efaf-496f-b14c-5a8d4dc345c7",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "result"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -5808,
+        -176
+      ],
+      "id": "3471e77d-729f-4d86-a797-34eb9b804a0a",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ed6a2972-d12e-4a23-b500-8a73c6e638c5",
+              "name": "result",
+              "value": "={{ $json.results.map(item => ({ id: item.id, title: item.title, url: $('Edit Fields4').item.json.wiki_base_url + $json.results[0]._links.webui})) }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -6016,
+        -176
+      ],
+      "id": "9d2bb77a-5277-4152-b2d8-d916d235ea2c",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "007c358d-84ea-4fdd-ac92-329d94f9dcb8",
+              "name": "pages",
+              "value": "={{(\n  () => {\n    const nested = $json.result;\n    // Flatten the nested array of arrays\n    return nested.flat();\n  }\n)()}}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -5584,
+        -176
+      ],
+      "id": "33000954-40d4-4174-b78d-f63b1be790e0",
+      "name": "Edit Fields5"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "pages",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        -5376,
+        -176
+      ],
+      "id": "9c44e4c1-3b68-4624-b3fb-026fd4bb7e51",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -5120,
+        -176
+      ],
+      "id": "1a2c0c88-f348-44bd-895d-354654c4fe94",
+      "name": "Loop Over Items1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Edit Fields4').item.json.wiki_base_url }}/rest/api/content/{{ $('Edit Fields').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "expand",
+              "value": "body.storage,version,history,ancestors"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4096,
+        -176
+      ],
+      "id": "358aca30-816d-4147-a2cd-3766322440ad",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fe2a0875-995a-4a6c-95ab-a675ef03dc0f",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "e5aaf8a3-1351-4e0b-99cf-d10aefe8d80c",
+              "name": "parent_page_id",
+              "value": "={{ $json.ancestors[$json.ancestors.length - 1].id }}",
+              "type": "string"
+            },
+            {
+              "id": "f34d59ce-c18b-441e-b175-48a16b807c5e",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "e3735390-6a87-4c4d-bc6d-953d21b32135",
+              "name": "url",
+              "value": "={{ $('Edit Fields4').item.json.wiki_base_url + $json._links.webui }}",
+              "type": "string"
+            },
+            {
+              "id": "b0541e2b-e514-47b1-b40b-5d7f1bce3851",
+              "name": "author",
+              "value": "={{ $json.history.createdBy.displayName }}",
+              "type": "string"
+            },
+            {
+              "id": "6510874e-9c46-40a1-b9ec-b5ca81d5fb53",
+              "name": "creation_date",
+              "value": "={{ $json.history.createdDate }}",
+              "type": "string"
+            },
+            {
+              "id": "dac125d8-99e0-4c8e-8960-28fec0cbe742",
+              "name": "last_edit_date",
+              "value": "={{(() => {\n  const v = $json.version?.when;\n  return v ?? $json.history?.createdDate;\n})()}}",
+              "type": "string"
+            },
+            {
+              "id": "c2200c90-bced-4b6f-9325-5741437114bc",
+              "name": "editor",
+              "value": "={{(() => {\n  const v = $json.version?.by?.displayName;\n  return v ?? $json.history?.createdBy?.displayName;\n})()}}",
+              "type": "string"
+            },
+            {
+              "id": "e8396d54-58dc-4d3f-bdc7-08561954a057",
+              "name": "current_version",
+              "value": "={{(() => {\n  const v = $json.version?.number;\n  return v ?? 0;\n})()}}",
+              "type": "string"
+            },
+            {
+              "id": "39af4a6c-be60-4c53-a911-fb982d316f37",
+              "name": "body",
+              "value": "={{ $json.body.storage.value }}",
+              "type": "string"
+            },
+            {
+              "id": "28b721e5-140d-4ab3-9bmycompany-f973c8a26dcc",
+              "name": "child_page_ids",
+              "value": "={{ $('HTTP Request4').item.json.results.map(item => item.id).join(\",\") }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3888,
+        -176
+      ],
+      "id": "b918a9a3-2003-4dmycompany-a776-mycompany4ed8amycompany7d7",
+      "name": "Edit Fields6"
+    },
+    {
+      "parameters": {
+        "html": "=<h1>Page Source: INFRA Confluence or Wiki Docs</h1>\n<h1>Page Title: {{ $json.title }}</h1>\n<hr>\n{{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        -3648,
+        -176
+      ],
+      "id": "cbmycompany96dd-d78c-47mycompany-b6d7-62281bc35d1f",
+      "name": "Markdown1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "documents-full",
+          "mode": "id"
+        },
+        "embeddingBatchSize": null,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        -3136,
+        -176
+      ],
+      "id": "deed246d-d9c5-4419-825e-8419ee315f27",
+      "name": "Qdrant Vector Store1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:v1.5"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        -3216,
+        32
+      ],
+      "id": "54612890-bc27-4d2c-b5cc-f71729918def",
+      "name": "Embeddings Ollama1"
+    },
+    {
+      "parameters": {
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "id",
+                "value": "={{ $('Edit Fields6').item.json.id }}"
+              },
+              {
+                "name": "title",
+                "value": "={{ $('Edit Fields6').item.json.title }}"
+              },
+              {
+                "name": "url",
+                "value": "={{ $('Edit Fields6').item.json.url }}"
+              },
+              {
+                "name": "author",
+                "value": "={{ $('Edit Fields6').item.json.author }}"
+              },
+              {
+                "name": "creation_date",
+                "value": "={{ $('Edit Fields6').item.json.creation_date }}"
+              },
+              {
+                "name": "editor",
+                "value": "={{ $('Edit Fields6').item.json.editor }}"
+              },
+              {
+                "name": "last_edit_date",
+                "value": "={{ $('Edit Fields6').item.json.last_edit_date }}"
+              },
+              {
+                "name": "current_version",
+                "value": "={{ $('Edit Fields6').item.json.current_version }}"
+              },
+              {
+                "name": "doc_type",
+                "value": "infra-confluence"
+              },
+              {
+                "name": "parent_page_id",
+                "value": "={{ $('Edit Fields6').item.json.parent_page_id }}"
+              },
+              {
+                "name": "child_page_ids",
+                "value": "={{ $('Edit Fields6').item.json.child_page_ids }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -3040,
+        48
+      ],
+      "id": "b9caf6be-6e25-4de3-9465-3df83c62ea40",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -2496,
+        192
+      ],
+      "id": "c22dfd86-fcf6-4da6-a802-43243d5294cf",
+      "name": "Wait1",
+      "webhookId": "5de3b339-b137-4a77-aecf-d07d7c7dc0e7"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -3040,
+        192
+      ],
+      "id": "eec13e83-ab07-4fbe-9720-fd2ff18mycompanyb00",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Edit Fields4').item.json.wiki_base_url }}/rest/api/content/{{ $json.id }}/child/page",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4576,
+        -176
+      ],
+      "id": "688bea5a-fa42-480b-8fca-110153624434",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a91fdbbb-7dca-4e33-aba9-74b3da08e4bf",
+              "name": "id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "1ecdce9a-81c9-404a-9b9b-c67a1f4f28ea",
+              "name": "title",
+              "value": "={{ $json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "f0595336-ec0a-4263-8018-e2239ac61074",
+              "name": "url",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4816,
+        -176
+      ],
+      "id": "6748422a-db7f-41bf-a817-dd48674841bb",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -4336,
+        -176
+      ],
+      "id": "0a6fa28c-929f-4d8b-a17b-fce01ce985ea",
+      "name": "Wait",
+      "webhookId": "5bfb9ce4-3b11-4343-aa98-fe1d6966a439"
+    },
+    {
+      "parameters": {
+        "html": "=<h1>Page Source: INFRA Confluence or Wiki Docs</h1>\n<h1>Page Title: {{ $json.title }}</h1>\n<h1>Page URL: {{ $json.url }}</h1>\n<h1>Page Author: {{ $json.author }}</h1>\n<h1>Page Creation Date: {{ $json.creation_date }}</h1>\n<h1>Page Last Editor: {{ $json.editor }}</h1>\n<h1>Page Last Edit Date: {{ $json.last_edit_date }}</h1>\n<hr>\n{{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.markdown",
+      "typeVersion": 1,
+      "position": [
+        -3648,
+        64
+      ],
+      "id": "368e4a45-8c72-45bc-890e-5fd10cd4b9cb",
+      "name": "Markdown"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c7cdcc8e-c9c4-4928-b53c-84ec99aaed7c",
+              "name": "body",
+              "value": "={{ $json.data }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -3408,
+        -176
+      ],
+      "id": "8b21b4b7-3653-4578-9325-4fbc988d4265",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "documents-ai",
+          "mode": "id"
+        },
+        "embeddingBatchSize": null,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        -2544,
+        -816
+      ],
+      "id": "ac1211af-ec42-4b27-be6c-ef4b31ab27cd",
+      "name": "Qdrant Vector Store",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "model": "nomic-embed-text:v1.5"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOllama",
+      "typeVersion": 1,
+      "position": [
+        -2560,
+        -576
+      ],
+      "id": "f34f323f-a585-41a1-a31e-d42989212f94",
+      "name": "Embeddings Ollama"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 50,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -2448,
+        -400
+      ],
+      "id": "ff3e7fd9-2a60-4957-9011-f1f4d1b8bcda",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body }}",
+        "options": {
+          "systemMessage": "Convert Given Confluence Page HTML Body to Natuaral Langugae plain text. Don't change any data. Try to make it better and meaningful."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        -3376,
+        -816
+      ],
+      "id": "5d12ec6f-e8df-47d6-b75f-eb43d5021268",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "o4-mini",
+          "mode": "list",
+          "cachedResultName": "o4-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -3424,
+        -560
+      ],
+      "id": "169b1bcd-f0mycompany-4d78-98e4-3476c7efe7c3",
+      "name": "MyCompany AI Model"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $execution.id }}",
+        "tableName": "chat_histories",
+        "contextWindowLength": 1000
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -3200,
+        -560
+      ],
+      "id": "c60a9545-4b9c-45b8-9d24-4ced2312cb0a",
+      "name": "Postgres Chat Memory"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "65b8d5d9-0838-4c16-b1a4-e4057260f9c4",
+              "name": "body",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2896,
+        -816
+      ],
+      "id": "65b04795-1aa2-477a-aaa5-e4676b69b488",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "id",
+                "value": "={{ $('Edit Fields6').item.json.id }}"
+              },
+              {
+                "name": "title",
+                "value": "={{ $('Edit Fields6').item.json.title }}"
+              },
+              {
+                "name": "url",
+                "value": "={{ $('Edit Fields6').item.json.url }}"
+              },
+              {
+                "name": "author",
+                "value": "={{ $('Edit Fields6').item.json.author }}"
+              },
+              {
+                "name": "creation_date",
+                "value": "={{ $('Edit Fields6').item.json.creation_date }}"
+              },
+              {
+                "name": "editor",
+                "value": "={{ $('Edit Fields6').item.json.editor }}"
+              },
+              {
+                "name": "last_edit_date",
+                "value": "={{ $('Edit Fields6').item.json.last_edit_date }}"
+              },
+              {
+                "name": "current_version",
+                "value": "={{ $('Edit Fields6').item.json.current_version }}"
+              },
+              {
+                "name": "doc_type",
+                "value": "infra-confluence"
+              },
+              {
+                "name": "parent_page_id",
+                "value": "={{ $('Edit Fields6').item.json.parent_page_id }}"
+              },
+              {
+                "name": "child_page_ids",
+                "value": "={{ $('Edit Fields6').item.json.child_page_ids }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -2416,
+        -576
+      ],
+      "id": "f091551a-b1d6-4e92-9a01-365b7c62f8e9",
+      "name": "Default Data Loader2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields4": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields5": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields6": {
+      "main": [
+        [
+          {
+            "node": "Markdown1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Markdown1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store1": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Ollama": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader2",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MyCompany AI Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader2": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2083f64a-8cc8-480a-b2c2-4b4d53784bbb",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c36adbc10b6129c742421e350d805eacd56df6e2c6073043cb0a4bc7ffeae4d1"
+  },
+  "id": "szAlSapPZqO81I0f",
+  "tags": []
+}

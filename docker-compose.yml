@@ -1,0 +1,112 @@
+services:
+  infra-proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: infra-proxy
+    restart: unless-stopped
+    networks:
+      - infra-ai-net
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - /root/docker-storage/infra-proxy/data:/data
+      - /root/docker-storage/infra-proxy/letsencrypt:/etc/letsencrypt
+
+  infra-portainer:
+    image: portainer/portainer-ce:latest
+    container_name: infra-portainer
+    networks:
+      - infra-ai-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/docker-storage/portainer:/data
+    restart: unless-stopped
+
+  infra-workflow:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: infra-workflow
+    networks:
+      - infra-ai-net
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=infra-workflow-db
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=n8npass
+      - DB_POSTGRESDB_SCHEMA=public
+      - GENERIC_TIMEZONE=Asia/Kolkata
+      - TZ=Asia/Kolkata
+      - WEBHOOK_URL=https://workflow.infra-ai.mycompany.com/
+      - N8N_SECURE_COOKIE=false
+    volumes:
+      - /root/docker-storage/workflow:/home/node/.n8n
+      - /opt/custom-certificates:/etc/ssl/certs:ro
+    depends_on:
+      - infra-workflow-db
+    restart: unless-stopped
+
+  infra-workflow-db:
+    image: postgres:15
+    container_name: infra-workflow-db
+    environment:
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD=n8npass
+      - POSTGRES_DB=n8n
+    networks:
+      - infra-ai-net
+    volumes:
+      - /root/docker-storage/pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  infra-memory-db:
+    image: postgres:15
+    container_name: infra-memory-db
+    environment:
+      - POSTGRES_USER=memory
+      - POSTGRES_PASSWORD=memorypass
+      - POSTGRES_DB=memory
+    ports:
+      - '5432:5432'
+    networks:
+      - infra-ai-net
+    volumes:
+      - /root/docker-storage/pgdata-memory:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  infra-qdrant-db:
+    image: qdrant/qdrant:latest
+    container_name: infra-qdrant-db
+    restart: unless-stopped
+    ports:
+      - '6333:6333'
+    networks:
+      - infra-ai-net
+    environment:
+      - QDRANT__SERVICE__API_KEY=password
+    volumes:
+      - /root/docker-storage/qdrant-data:/qdrant/storage
+
+  infra-open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: infra-open-webui
+    environment:
+      - ENABLE_OAUTH_SIGNUP=true
+      - OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
+      - OAUTH_UPDATE_PICTURE_ON_LOGIN=false
+      - MICROSOFT_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx
+      - MICROSOFT_CLIENT_SECRET=xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx
+      - MICROSOFT_CLIENT_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxxxxxxxxxx
+      - MICROSOFT_REDIRECT_URI=https://chat.infra-ai.mycompany.com/oauth/microsoft/callback
+      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+    networks:
+      - infra-ai-net
+    restart: unless-stopped
+    volumes:
+      - /root/docker-storage/open-webui:/app/backend/data
+      - /root/docker-static/infra-certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+
+networks:
+  infra-ai-net:
+    external: true
