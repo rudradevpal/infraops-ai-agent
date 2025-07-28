@@ -22,7 +22,7 @@
         "baseDN": "DC=activedirectory,DC=MyCompanyNet,DC=com",
         "searchFor": "(objectclass=organizationalPerson)",
         "attribute": "sAMAccountName",
-        "searchText": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Text', `The ActiveDirectory ID (username) of the employee to look up.\n**Rules**:\n\n* Accepts both exact and wildcard (fuzzy) inputs.\n* Use \\`*<text>*\\` syntax for fuzzy searches.\n* Avoid using full names or emails here — use the dedicated LDAP tools for those.\n  Example (exact):\n\n\\`\\`\\`\nrpal\n\\`\\`\\`\n\nExample (fuzzy):\n\n\\`\\`\\`\n*alex*\n\\`\\`\\``, 'string') }}",
+        "searchText": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Search_Text', `The ActiveDirectory ID (username) of the employee to look up.\n**Rules**:\n\n* Accepts both exact and wildcard (fuzzy) inputs.\n* Use \\`*<text>*\\` syntax for fuzzy searches.\n* Avoid using full names or emails here — use the dedicated LDAP tools for those.\n  Example (exact):\n\n\\`\\`\\`\nrudra\n\\`\\`\\`\n\nExample (fuzzy):\n\n\\`\\`\\`\n*alex*\n\\`\\`\\``, 'string') }}",
         "returnAll": true,
         "options": {
           "attributes": [
