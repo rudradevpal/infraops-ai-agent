@@ -27,6 +27,9 @@ This project is containerized and orchestrated using Docker Compose. It includes
 - **Portainer** for managing containers via GUI
 - **SSH API Server** to execute system-level commands securely
 
+![Architecture](images/IVA-web.drawio.png)
+
+
 ---
 
 ## 📦 Services (From `docker-compose.yml`)
